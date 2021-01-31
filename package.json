@@ -1,0 +1,20 @@
+{
+  "name": "evo-truss",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "watchcompile": "tsc -w",
+    "parcel": "parcel www/index.html"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0",
+    "parcel-bundler": "^1.12.4"
+  },
+  "dependencies": {
+    "@types/mathjs": "^6.0.11",
+    "d3-delaunay": "^5.3.0",
+    "mathjs": "^9.1.0"
+  }
+}
