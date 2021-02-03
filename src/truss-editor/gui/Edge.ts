@@ -27,6 +27,7 @@ export default class Edge extends GuiElement {
         let { c } = app, { a, b } = this, aPos = a.position, bPos = b.position
         let color = this.color( app )
         c.save(); {
+            c.lineCap = "round"
             c.strokeStyle = color
             c.fillStyle = color
             c.lineWidth = 4

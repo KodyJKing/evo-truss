@@ -128,7 +128,7 @@ export default class App {
                 else
                     focusElement.mousedown( this )
             } else {
-                if ( selectedElement instanceof Vertex && keyboard.get( "control" ) ) {
+                if ( selectedElement instanceof Vertex && keyboard.get( "shift" ) ) {
                     this.loads.push( new Load( selectedElement, mouse.pos ) )
                     this.selectedElement = null
                 } else {

@@ -1,4 +1,3 @@
-import { notDependencies } from "mathjs"
 import { removeFromArray } from "../../util"
 import Vector2 from "../../Vector2"
 import App from "../App"
@@ -113,6 +112,8 @@ export default class Vertex extends GuiElement {
         return [
             new SnapLine( this.position, new Vector2( 1, 0 ) ),
             new SnapLine( this.position, new Vector2( 0, 1 ) ),
+            new SnapLine( this.position, new Vector2( 1, 1 ) ),
+            new SnapLine( this.position, new Vector2( -1, 1 ) ),
         ]
     }
 }
