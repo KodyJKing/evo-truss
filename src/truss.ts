@@ -1,9 +1,10 @@
 import * as math from "mathjs"
 import Vector2 from "./Vector2"
 
-type edge = [ number, number ]
-type reaction = [ number, Vector2 ]
-type load = [ number, Vector2 ]
+export type TrussEdge = [ number, number ]
+export type TrussReaction = [ number, Vector2 ]
+export type TrussLoad = [ number, Vector2 ]
+export type TrussProblem = { vertices: Vector2[], reactions: TrussReaction[], edges: TrussEdge[], loads: TrussLoad[] }
 
 export function minNormSolve( A, b ) {
     let At = math.transpose( A )
@@ -12,7 +13,23 @@ export function minNormSolve( A, b ) {
     return math.multiply( At, w )
 }
 
-export function trussMatrix( vertices: Vector2[], edges: edge[], reactions: reaction[] ) {
+export function leastSquaresSolve( A, b ) {
+    let At = math.transpose( A )
+    let AtAInv = math.inv( math.multiply( At, A ) )
+    let Atb = math.multiply( At, b )
+    return math.multiply( AtAInv, Atb )
+}
+
+export function solveRectangular( A, b ) {
+    let r0 = A[ 0 ]
+    let width = r0.length
+    let height = A.length
+    if ( width > height )
+        return minNormSolve( A, b )
+    return math.lusolve( A, b )
+}
+
+export function trussMatrix( vertices: Vector2[], edges: TrussEdge[], reactions: TrussReaction[] ) {
     let height = 2 * vertices.length
     let width = edges.length + reactions.length
     let matrix = math.zeros( [ height, width ] )
@@ -45,7 +62,7 @@ export function trussMatrix( vertices: Vector2[], edges: edge[], reactions: reac
     return matrix
 }
 
-export function trussLoad( numVerts, loads: load[] ) {
+export function trussLoad( numVerts, loads: TrussLoad[] ) {
     let matrix = math.zeros( [ numVerts * 2, 1 ] )
     for ( let load of loads ) {
         let [ i, force ] = load
@@ -53,6 +70,13 @@ export function trussLoad( numVerts, loads: load[] ) {
         matrix[ i * 2 + 1 ][ 0 ] += -force.y
     }
     return matrix
+}
+
+export function solveTruss( problem: TrussProblem ) {
+    let { vertices, reactions, edges, loads } = problem
+    let mat = trussMatrix( vertices, edges, reactions )
+    let ld = trussLoad( vertices.length, loads )
+    return math.lusolve( mat, ld )
 }
 
 function* enumerate( a ) {

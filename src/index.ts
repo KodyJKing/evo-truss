@@ -3,6 +3,8 @@ import { lusolve } from "mathjs"
 import * as truss from "./truss"
 import { range, tuplemin } from "./util"
 import Vector2 from "./Vector2"
+import * as math from "mathjs"
+
 
 declare const canvas: HTMLCanvasElement
 let c: CanvasRenderingContext2D
@@ -19,17 +21,19 @@ function mainLoop() {
     requestAnimationFrame( mainLoop )
 }
 
-let bestRating = Infinity
+let bestRating: number = Infinity
 let bestSolution: [ number, number ][] = []
 function update() {
-    let pts = bestRating == Infinity ? generatePoints() : mutatePoints( bestSolution )
-    let [ rating, delaunay ] = analyzeAndRate( pts )
+    let points = bestRating == Infinity ? generatePoints() : mutatePoints( bestSolution, 10 )
+    const delaunay = Delaunay.from( points )
+    let edges = Array.from( delaunayEdges( delaunay ) ) as [ number, number ][]
+    let rating = analyzeAndRate( points, edges )
     if ( rating < bestRating ) {
         bestRating = rating
-        bestSolution = pts
-        console.log( rating )
+        bestSolution = points
+        // console.log( rating )
         c.clearRect( 0, 0, canvas.width, canvas.height )
-        drawSln( pts, delaunay )
+        drawSln( points, edges )
     }
 }
 
@@ -44,44 +48,43 @@ function* delaunayEdges( delaunay ) {
     }
 }
 
+const margin = 100
 function generatePoints() {
-    const margin = 100
-    let pts: [ number, number ][] = []
+    let points: [ number, number ][] = []
     for ( let i of range( 3 ) )
-        pts.push( [
+        points.push( [
             Math.random() * ( canvas.width - margin * 2 ) + margin,
             Math.random() * ( canvas.height - margin * 2 ) + margin
         ] )
-    pts.push( [ 50, 200 ] )
-    pts.push( [ 50, 600 ] )
-    pts.push( [ 750, 400 ] )
-    return pts
+    points.push( [ 50, 200 ] )
+    points.push( [ 50, 600 ] )
+    points.push( [ 750, 400 ] )
+    return points
 }
 
-function mutatePoints( pts: [ number, number ][] ) {
-    let copy = JSON.parse( JSON.stringify( pts ) ) as [ number, number ][]
+function mutatePoints( points: [ number, number ][], mutationRate ) {
+    let copy = JSON.parse( JSON.stringify( points ) ) as [ number, number ][]
     for ( let i = 0; i < copy.length - 3; i++ ) {
         let pt = copy[ i ]
-        pt[ 0 ] += ( Math.random() - .5 ) * 10
-        pt[ 1 ] += ( Math.random() - .5 ) * 10
+        pt[ 0 ] += ( Math.random() - .5 ) * mutationRate
+        pt[ 1 ] += ( Math.random() - .5 ) * mutationRate
     }
     if ( copy.length > 3 && Math.random() < .1 ) {
         let index = Math.floor( Math.random() * ( copy.length - 3 ) )
         copy.splice( index, 1 )
     }
     if ( copy.length < 20 && Math.random() < .1 ) {
-        const margin = 100
-        copy.unshift( [
-            Math.random() * ( canvas.width - margin * 2 ) + margin,
-            Math.random() * ( canvas.height - margin * 2 ) + margin
-        ] )
+        for ( let i = 0; i < 3; i++ )
+            copy.unshift( [
+                Math.random() * ( canvas.width - margin * 2 ) + margin,
+                Math.random() * ( canvas.height - margin * 2 ) + margin
+            ] )
     }
     return copy
 }
 
-function analyze( pts, delaunay, upperMountIndex, lowerMountIndex, endpointIndex, endpointLoad ) {
-    let edges = Array.from( delaunayEdges( delaunay ) ) as [ number, number ][]
-    let vertices = pts.map( p => new Vector2( p[ 0 ], p[ 1 ] ) )
+function analyze( points, edges, upperMountIndex, lowerMountIndex, endpointIndex, endpointLoad ) {
+    let vertices = points.map( p => new Vector2( p[ 0 ], p[ 1 ] ) )
     let reactions = [
         [ upperMountIndex, new Vector2( 1, 0 ) ],
         [ upperMountIndex, new Vector2( 0, 1 ) ],
@@ -89,47 +92,58 @@ function analyze( pts, delaunay, upperMountIndex, lowerMountIndex, endpointIndex
     ] as [ number, Vector2 ][]
     let trussMat = truss.trussMatrix( vertices, edges, reactions )
     let trussLoad = truss.trussLoad( vertices.length, [ [ endpointIndex, endpointLoad ] ] )
-    let trussSln: any = null
+    let forces: any = null
     try {
-        // trussSln = truss.minNormSolve( trussMat, trussLoad )
-        trussSln = lusolve( trussMat, trussLoad ) //truss.minNormSolve( trussMat, trussLoad )
+        forces = math.lusolve( trussMat, trussLoad )
+        // forces = truss.minNormSolve( trussMat, trussLoad )
+        // forces = truss.leastSquaresSolve( trussMat, trussLoad )
+        // forces = truss.solveTruss( trussMat, trussLoad )
     } catch ( e ) {
         // console.log( "matrix is singular" )
     }
-    return trussSln
+    return [ forces, trussMat, trussLoad ]
 }
 
-function rateSln( forces ) {
+function rateSln( points, edges, forces, trussMat, trussLoad ) {
     if ( !forces ) return Infinity
-    let rating = 0
-    for ( let term of forces ) rating += term[ 0 ] ** 2
-    return Math.sqrt( rating )
+
+    let maxForce = 0
+    for ( let term of forces ) maxForce = Math.max( maxForce, Math.abs( term[ 0 ] ) )
+
+    let maxLength = 0
+    let totalLength = 0
+    for ( let [ i, j ] of edges ) {
+        let a = points[ i ]
+        let b = points[ j ]
+        let length = Math.hypot( a[ 0 ] - b[ 0 ], a[ 1 ] - b[ 1 ] )
+        totalLength += length
+        maxLength = Math.max( length, maxLength )
+    }
+
+    return maxForce + maxLength * 2 + totalLength * .01 //+ points.length * 2
 }
 
-function analyzeAndRate( pts ) {
-    // console.time( "analyze" )
-    const delaunay = Delaunay.from( pts )
-    let forces = analyze(
-        pts, delaunay,
-        pts.length - 3,
-        pts.length - 2,
-        pts.length - 1,
+function analyzeAndRate( points, edges ) {
+    let [ forces, trussMat, trussLoad ] = analyze(
+        points, edges,
+        points.length - 3,
+        points.length - 2,
+        points.length - 1,
         new Vector2( 0, 100 )
     )
-    // console.timeEnd( "analyze" )
-    return [ rateSln( forces ), delaunay ]
+    return rateSln( points, edges, forces, trussMat, trussLoad )
 }
 
-function drawSln( pts: [ number, number ][], delaunay ) {
-    for ( let pt of pts ) {
+function drawSln( points: [ number, number ][], edges ) {
+    for ( let pt of points ) {
         c.beginPath()
-        c.arc( ...pt, 4, 0, Math.PI * 2 )
+        c.arc( pt[ 0 ], pt[ 1 ], 4, 0, Math.PI * 2 )
         c.fill()
     }
-    for ( let [ i, j ] of delaunayEdges( delaunay ) ) {
+    for ( let [ i, j ] of edges ) {
         c.beginPath()
-        c.moveTo( ...pts[ i ] )
-        c.lineTo( ...pts[ j ] )
+        c.moveTo( ...points[ i ] )
+        c.lineTo( ...points[ j ] )
         c.stroke()
     }
 }

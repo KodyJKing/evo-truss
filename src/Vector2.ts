@@ -20,6 +20,8 @@ export default class Vector2 {
     get lengthSquared() { return this.x * this.x + this.y * this.y }
     get angle() { return Math.atan2( this.y, this.x ) }
 
+    distance( other: Vector2 ) { return Math.hypot( this.x - other.x, this.y - other.y ) }
+
     unit() { return this.multiply( 1 / this.length ) }
     leftNormal() { return new Vector2( -this.y, this.x ) }
     rightNormal() { return new Vector2( this.y, -this.x ) }
