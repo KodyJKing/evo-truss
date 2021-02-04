@@ -1,8 +1,6 @@
 <head>
     <style>
         body {
-            /* padding: 0;
-                    margin: 0; */
             width: 100vw;
             height: 100vh;
             background-color: #f8f8ff;
@@ -14,13 +12,21 @@
             height: 800px;
             border: 2px solid lightgray;
             border-radius: 8px;
-            /* image-rendering: pixelated; */
+        }
+
+        p {
+            width: 800px
         }
     </style>
 </head>
 
 <body>
     <canvas id=canvas></canvas>
-    <script src="../lib/truss-editor/index.js"></script>
-    <!-- <script src="../lib/index.js"></script> -->
+    <script src="./../lib/truss-editor/index.js"></script>
+    <p>
+        Left click to add joints. <br>
+        To add members, select a joints and then click the node to connect it to. <br>
+        To add a force, click a joint and then shift click somewhere empty. <br>
+        To move an joint/force, hold shift, click and drag the element.
+    </p>
 </body>
