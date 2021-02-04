@@ -69,9 +69,13 @@ export default class App {
 
         this.solve()
 
-        c.font = "12px Arial"
-        let text = this.maxForce == null ? "system is unsolvable" : "max force = " + this.maxForce
-        c.fillText( text, 5, 12 )
+        if ( this.maxForce == null ) {
+            c.font = "12px Arial"
+            c.fillText( "system is unsolvable", 5, 12 )
+        }
+        // c.font = "12px Arial"
+        // let text = this.maxForce == null ? "system is unsolvable" : "max force = " + this.maxForce
+        // c.fillText( text, 5, 12 )
     }
 
     updateDrag() {
@@ -206,6 +210,7 @@ export default class App {
         }
 
         let problem = { vertices, reactions, edges, loads }
+        for ( let vertex of this.vertices ) vertex.reaction = null
         try {
             let solution = solveTruss( problem )
             this.maxForce = 0
@@ -213,6 +218,14 @@ export default class App {
                 let tension = solution[ i ][ 0 ]
                 this.edges[ i ].tension = tension
                 this.maxForce = Math.max( this.maxForce ?? 0, Math.abs( tension ) )
+            }
+            for ( let i = 0; i < reactions.length; i++ ) {
+                let j = reactions[ i ][ 0 ]
+                let k = edges.length + i
+                let scalarForce = solution[ k ][ 0 ]
+                let force = reactions[ i ][ 1 ].multiply( scalarForce )
+                let vertex = this.vertices[ j ]
+                vertex.reaction = ( vertex.reaction ?? new Vector2( 0, 0 ) ).add( force )
             }
         } catch ( e ) {
             this.maxForce = null

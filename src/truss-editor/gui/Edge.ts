@@ -4,7 +4,6 @@ import Vertex from "./Vertex"
 import App from "../App"
 import { GuiElement, emptySnaplines } from "./GuiElement"
 import SnapLine from "../SnapLine"
-import { matrix } from "mathjs"
 import { textbox } from "../drawutil"
 
 

@@ -4,12 +4,14 @@ import App from "../App"
 import Edge from "./Edge"
 import { emptySnaplines, GuiElement } from "./GuiElement"
 import SnapLine from "../SnapLine"
+import { textbox } from "../drawutil"
 
 enum Constraint { None, Pin, HorizontalRoller, VerticalRoller }
 
 export default class Vertex extends GuiElement {
     position: Vector2
     constraint: Constraint = Constraint.None
+    reaction: Vector2 | null = null
     constructor( position ) {
         super()
         this.position = position
@@ -21,7 +23,7 @@ export default class Vertex extends GuiElement {
 
     draw( app: App ) {
         let { c } = app
-        let { constraint: constraint } = this
+        let { constraint: constraint, reaction } = this
         let { x, y } = this.position
         let color = this.color( app )
 
@@ -52,12 +54,16 @@ export default class Vertex extends GuiElement {
                 default:
                     break
             }
+
+            if ( reaction )
+                textbox( c, new Vector2( 0, 25 ), reaction.x.toFixed( 2 ) + ", " + reaction.y.toFixed( 2 ) )
         }; c.restore()
 
     }
 
     private drawPin( app: App, radius, angle ) {
         let { c } = app
+        c.save()
         c.rotate( angle )
         c.beginPath()
         c.moveTo( -radius, -radius )
@@ -65,6 +71,7 @@ export default class Vertex extends GuiElement {
         c.moveTo( -radius, radius )
         c.lineTo( radius, radius )
         c.stroke()
+        c.restore()
     }
 
     mousedown( app: App ) {
