@@ -56,7 +56,7 @@ export default class Vertex extends GuiElement {
             }
 
             if ( reaction )
-                textbox( c, new Vector2( 0, 25 ), reaction.x.toFixed( 2 ) + ", " + reaction.y.toFixed( 2 ) )
+                textbox( c, new Vector2( 0, 25 ), reaction.x.toFixed( 2 ) + ", " + ( -reaction.y ).toFixed( 2 ) )
         }; c.restore()
 
     }
