@@ -5,12 +5,14 @@
   "license": "MIT",
   "scripts": {
     "watchcompile": "tsc -w",
-    "parcel": "parcel www/index.html"
+    "parcel": "parcel www/index.html",
+    "push-gh-page": "push-dir --dir=dist --branch=gg-pages --cleanup --verbose"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
     "babel-preset-env": "^1.7.0",
-    "parcel-bundler": "^1.12.4"
+    "parcel-bundler": "^1.12.4",
+    "push-dir": "^0.4.1"
   },
   "dependencies": {
     "@types/mathjs": "^6.0.11",
