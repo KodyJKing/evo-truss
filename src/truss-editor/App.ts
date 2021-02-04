@@ -66,6 +66,7 @@ export default class App {
         for ( let elements of [ this.loads, this.edges, this.vertices ] )
             for ( let element of elements )
                 element.draw( this )
+        this.focusElement?.draw( this )
 
         this.solve()
 
