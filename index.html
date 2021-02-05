@@ -1,0 +1,35 @@
+<head>
+    <style>
+        body {
+            width: 100vw;
+            height: 100vh;
+            background-color: #f8f8ff;
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 800px;
+            height: 800px;
+            border: 2px solid lightgray;
+            border-radius: 8px;
+        }
+
+        p {
+            width: 800px
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas"></canvas>
+    <script src="./truss-editor.6197cb86.js"></script>
+    <p>
+        Left click to add joints. <br>
+        Hover over an element and right click to delete it. <br>
+        To add members, select a joint and then click the joint to connect it to. <br>
+        To add a force, click a joint and then shift click somewhere empty. <br>
+        To move an joint/force, hold shift, click and drag the element. <br>
+        To change the support on a joint, hover over it and press "c". <br>
+        It will cycle between no constraint, a pin, and vertical/horizontal rollers.
+    </p>
+</body>
