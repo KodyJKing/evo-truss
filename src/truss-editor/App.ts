@@ -25,6 +25,10 @@ export default class App {
     selectedElement: GuiElement | null = null
     dragElement: GuiElement | null = null
 
+    showRelativeGuides = false
+    showGrid = true
+    gridStride = 40
+
     static maxSelectDistance = 20
     static snapDistance = 10
 
@@ -32,7 +36,7 @@ export default class App {
         this.canvas = document.getElementById( "canvas" ) as HTMLCanvasElement
         this.c = this.canvas.getContext( "2d" ) as CanvasRenderingContext2D
         this.mouse = new Mouse( this.canvas )
-        this.resizeCanvas( 800, 800, 1 )
+        this.resizeCanvas( window.innerHeight - 10, window.innerWidth - 25, 1 )
         this.canvas.addEventListener( "mousedown", ev => this.mousedown( ev ) )
         window.addEventListener( "keypress", ev => this.keypress( ev ) )
         this.mainLoop()
@@ -60,7 +64,15 @@ export default class App {
         let { c, canvas } = this, { width, height } = canvas
         c.clearRect( 0, 0, width, height )
 
-        this.updateDrag()
+
+        let snaplines = Array.from(
+            SnapLine.distinct(
+                this.snaplines()
+            )
+        )
+        for ( let snapline of snaplines )
+            snapline.draw( this, this.mouse.pos )
+        this.updateDrag( snaplines )
 
         this.focusElement = this.pickFocus()
         for ( let elements of [ this.loads, this.edges, this.vertices ] )
@@ -74,34 +86,32 @@ export default class App {
             c.font = "12px Arial"
             c.fillText( "system is unsolvable", 5, 12 )
         }
-        // c.font = "12px Arial"
-        // let text = this.maxForce == null ? "system is unsolvable" : "max force = " + this.maxForce
-        // c.fillText( text, 5, 12 )
     }
 
-    updateDrag() {
-        let mousePos = this.mouse.pos
+    updateDrag( snaplines: SnapLine[] ) {
         if ( !this.mouse.leftDown )
             this.dragElement = null
         if ( this.dragElement != null ) {
-            let snaplines = Array.from(
-                SnapLine.distinct(
-                    this.snaplines()
-                )
-            )
-            let dragPosition = this.pickDragPoint( snaplines, mousePos )
-            for ( let snapline of snaplines )
-                snapline.draw( this, mousePos )
+            let dragPosition = this.pickSnapPoint( snaplines, this.mouse.pos )
             this.dragElement.drag( this, dragPosition )
         }
     }
 
     *snaplines() {
-        for ( let element of this.elements() )
-            yield* element.snaplines( this )
+        if ( this.showRelativeGuides )
+            for ( let elements of [ this.vertices, this.edges, this.loads ] )
+                for ( let element of elements )
+                    yield* element.snaplines( this )
+        if ( this.showGrid ) {
+            const stride = this.gridStride
+            for ( let x = 0; x < this.canvas.width; x += stride )
+                yield new SnapLine( new Vector2( x, 0 ), new Vector2( 0, 1 ) )
+            for ( let y = 0; y < this.canvas.height; y += stride )
+                yield new SnapLine( new Vector2( 0, y ), new Vector2( 1, 0 ) )
+        }
     }
 
-    pickDragPoint( snaplines: SnapLine[], mousePos: Vector2 ) {
+    pickSnapPoint( snaplines: SnapLine[], mousePos: Vector2 ) {
         let intersections = SnapLine.intersections( snaplines )
 
         let minIntersection = findMin( intersections, ( point: Vector2 ) => {
@@ -151,8 +161,16 @@ export default class App {
     }
 
     keypress( event: KeyboardEvent ) {
-        if ( event.key == "s" )
-            this.solve()
+        if ( event.key == "r" )
+            this.showRelativeGuides = !this.showRelativeGuides
+        if ( event.key == "g" )
+            this.showGrid = !this.showGrid
+        if ( event.key == "-" )
+            this.gridStride *= 2
+        if ( event.key == "=" ) {
+            this.gridStride /= 2
+            this.gridStride = Math.max( 10, this.gridStride )
+        }
         this.focusElement?.keypress( this, event )
     }
 

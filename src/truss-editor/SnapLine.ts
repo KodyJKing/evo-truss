@@ -16,16 +16,16 @@ export default class SnapLine {
         let { origin, heading } = this
         let mx = mousePos.x, my = mousePos.y
         let start = origin.subtract( heading.multiply( 2000 ) ), end = origin.add( heading.multiply( 2000 ) )
-        let gradient = c.createRadialGradient( mx, my, 100, mx, my, 400 )
-        gradient.addColorStop( 0, "gray" )
-        gradient.addColorStop( 1, "#f8f8ff" )
+        // let gradient = c.createRadialGradient( mx, my, 100, mx, my, 400 )
+        // gradient.addColorStop( 0, "gray" )
+        // gradient.addColorStop( 1, "#f8f8ff" )
         c.save(); {
-            c.strokeStyle = gradient
+            c.strokeStyle = "gray" //gradient
             c.beginPath()
             VCanvas.path( c, [ start, end ] )
-            c.setLineDash( [ 10, 2 ] )
+            // c.setLineDash( [ 10, 2 ] )
             c.stroke()
-            c.setLineDash( [] )
+            // c.setLineDash( [] )
             c.restore()
         }; c.restore()
     }

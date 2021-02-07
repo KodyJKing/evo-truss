@@ -4,14 +4,15 @@
             width: 100vw;
             height: 100vh;
             background-color: #f8f8ff;
-            overflow: hidden;
+            margin: 0;
+            overflow-x: hidden;
         }
 
         canvas {
             width: 800px;
             height: 800px;
             border: 2px solid lightgray;
-            border-radius: 8px;
+            /* border-radius: 8px; */
         }
 
         p {
@@ -21,8 +22,6 @@
 </head>
 
 <body>
-    <canvas id=canvas></canvas>
-    <script src="./../lib/truss-editor/index.js"></script>
     <p>
         Left click to add joints. <br>
         Hover over an element and right click to delete it. <br>
@@ -32,4 +31,6 @@
         To change the support on a joint, hover over it and press "c". <br>
         It will cycle between no constraint, a pin, and vertical/horizontal rollers.
     </p>
+    <canvas id=canvas></canvas>
+    <script src="./../lib/truss-editor/index.js"></script>
 </body>
